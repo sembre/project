@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kijang 5K Bergetar Saat Langsam</title>
+<meta name="description" content="Rangkuman troubleshooting Kijang 5K (karbu Aisan) yang bergetar saat langsam: celah klep, setelan langsam, pilot jet #50, air bleed, dan main jet.">
+<meta property="og:title" content="Kijang 5K Bergetar Saat Langsam">
+<meta property="og:description" content="Rangkuman troubleshooting karbu Aisan Kijang 5K: celah klep, setelan langsam, pilot jet, air bleed, dan main jet.">
+<meta property="og:url" content="https://sembre.github.io/project/kijang-5k-karburator-langsam/">
+<meta property="og:type" content="article">
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --text:#1b1b1b; --muted:#6b6b6b; --line:#e3e3df; --accent:#1f3a5f; --head:#1f3a5f; --headtx:#fff; --zebra:#f2f4f7;
+          --ok-bg:#e8f5ec; --ok:#2e7d4f; --warn-bg:#fff4e5; --warn:#b06e00; --fuel:#ba7517; --idle:#d85a30; --air:#378add; --metal:#888780; --dark:#5f5e5a; --gas:#fac775; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141414; --card:#1e1e1e; --text:#ececec; --muted:#9a9a9a; --line:#2e2e2e; --accent:#8fb4e3; --head:#24384f; --headtx:#ececec; --zebra:#232323;
+            --ok-bg:#16301f; --ok:#5cc58a; --warn-bg:#33270f; --warn:#f0b04a; --metal:#9c9a92; --dark:#b4b2a9; --gas:#7a5310; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:820px; margin:0 auto; padding:40px 16px 64px; }
+  h1 { font-size:28px; line-height:1.25; margin:0 0 6px; letter-spacing:-0.01em; }
+  .sub { color:var(--muted); margin:0 0 28px; font-size:15px; }
+  h2 { font-size:19px; margin:36px 0 12px; color:var(--accent); }
+  p { margin:0 0 12px; }
+  .box { border-left:4px solid; padding:14px 16px; margin:0 0 12px; }
+  .ok { background:var(--ok-bg); border-color:var(--ok); }
+  .warn { background:var(--warn-bg); border-color:var(--warn); }
+  .warn ul { margin:0; padding-left:18px; }
+  .tbl { overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--card); margin:0 0 12px; }
+  table { border-collapse:collapse; width:100%; font-size:14.5px; }
+  th, td { text-align:left; vertical-align:top; padding:9px 12px; border-bottom:1px solid var(--line); }
+  th { background:var(--head); color:var(--headtx); font-weight:600; }
+  tr:nth-child(even) td { background:var(--zebra); }
+  tr:last-child td { border-bottom:0; }
+  ol { padding-left:22px; margin:0 0 12px; }
+  ol li { margin-bottom:6px; }
+  figure { margin:0 0 12px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  figure svg { display:block; width:100%; max-width:460px; margin:0 auto; }
+  figcaption { color:var(--muted); font-size:13.5px; margin-top:8px; text-align:center; }
+  svg text { font:12px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; fill:var(--muted); }
+  .src { font-size:13.5px; color:var(--muted); }
+  .src a, footer a { color:var(--accent); }
+  footer { margin-top:44px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:13.5px; display:flex; gap:18px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kijang 5K bergetar saat langsam</h1>
+  <p class="sub">Rangkuman troubleshooting · karburator Aisan 2-barel · Oktober 2026</p>
+
+  <h2>Masalah</h2>
+  <p>Mesin Kijang 5K bergetar <b>hanya saat langsam</b> dan halus ketika gas dibuka. Tujuan awal: mencari ukuran air bleed untuk campuran 14,7:1.</p>
+
+  <h2>Kesimpulan utama</h2>
+  <div class="box ok"><b>Penyebab paling mungkin adalah celah klep yang terlalu rapat</b> (IN 0,15 / EX 0,25 mm, padahal spesifikasinya IN 0,20 / EX 0,30 mm), bukan ukuran jet atau air bleed. Celah yang terlalu rapat bisa membuat klep tidak menutup sempurna saat mesin panas, sehingga kompresi bocor dan langsam bergetar.</div>
+
+  <h2>Temuan</h2>
+  <div class="tbl"><table>
+    <tr><th>Topik</th><th>Temuan</th></tr>
+    <tr><td>AFR 14,7</td><td>Tidak ditentukan oleh air bleed saja. Air bleed hanya membentuk kurva campuran; main jet dan sekrup campuran lebih menentukan.</td></tr>
+    <tr><td>Target AFR langsam</td><td><b>13,8–14,5</b> (sedikit kaya agar langsam stabil)</td></tr>
+    <tr><td>Target AFR beban penuh</td><td><b>12,5–13,2</b>. Kalau tetap 14,7, mesin berisiko panas dan ngelitik.</td></tr>
+    <tr><td>Pilot jet</td><td><b>#50</b> (diasumsikan ≈0,50 mm)</td></tr>
+    <tr><td>Slow air bleed (di atas pilot jet)</td><td>Dibor menjadi <b>0,80 mm</b>. Rasio 1,6× pilot jet, campuran cenderung sedikit kaya. Masih layak dipakai.</td></tr>
+    <tr><td>Lubang kedua (kemungkinan main air bleed)</td><td>Dibor menjadi <b>0,70 mm</b>. Ukuran asli tidak diketahui; perlu dibuktikan dengan tes jalan dan warna busi.</td></tr>
+    <tr><td>Ukuran standar air bleed 5K</td><td>Tidak ditemukan data pabrik yang terverifikasi. Estimasi 1,0–1,4 mm hanya acuan umum.</td></tr>
+    <tr><td>Main jet standar</td><td>Angka yang beredar <b>#130 dan #160</b> (kemungkinan primer/sekunder). Sumbernya satu jawaban anonim, jadi belum terverifikasi.</td></tr>
+    <tr><td>Celah klep</td><td>Terpasang <b>IN 0,15 / EX 0,25 mm</b>. Spesifikasi <b>IN 0,20 / EX 0,30 mm</b>, jadi terlalu rapat 0,05 mm.</td></tr>
+  </table></div>
+
+  <h2>Ilustrasi sirkuit karburator</h2>
+  <figure>
+    <svg viewBox="0 0 380 400" role="img" aria-labelledby="dt dd"><title id="dt">Penampang skematis karburator Kijang 5K</title><desc id="dd">Ruang pelampung, main jet, sumur emulsi dengan main air bleed 0,70 mm, nozzle di venturi, sirkuit langsam dengan pilot jet #50 dan slow air bleed 0,80 mm, idle port dan sekrup campuran di bawah throttle valve.</desc>
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+      <text x="180" y="22" text-anchor="middle">Udara masuk</text>
+      <line x1="180" y1="30" x2="180" y2="62" style="stroke:var(--air)" stroke-width="1.5" marker-end="url(#ar)"/>
+      <path d="M150 40 L150 120 L166 150 L150 180 L150 340" fill="none" style="stroke:var(--metal)" stroke-width="2"/>
+      <path d="M210 40 L210 120 L194 150 L210 180 L210 340" fill="none" style="stroke:var(--metal)" stroke-width="2"/>
+      <line x1="156" y1="286" x2="204" y2="270" style="stroke:var(--dark)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="180" cy="278" r="2.5" style="fill:var(--dark)"/>
+      <rect x="40" y="230" width="60" height="90" rx="4" fill="none" style="stroke:var(--metal)" stroke-width="1.5"/>
+      <rect x="41" y="252" width="58" height="67" rx="3" style="fill:var(--gas)"/>
+      <line x1="100" y1="312" x2="146" y2="312" style="stroke:var(--fuel)" stroke-width="2.5"/>
+      <rect x="102" y="306" width="8" height="12" rx="1" style="fill:var(--dark)"/>
+      <line x1="114" y1="312" x2="114" y2="100" style="stroke:var(--fuel)" stroke-width="2.5"/>
+      <circle cx="114" cy="94" r="4.5" fill="none" style="stroke:var(--air)" stroke-width="1.5"/>
+      <line x1="114" y1="150" x2="172" y2="150" style="stroke:var(--fuel)" stroke-width="2.5"/>
+      <line x1="138" y1="312" x2="138" y2="190" style="stroke:var(--fuel)" stroke-width="2"/>
+      <line x1="138" y1="190" x2="146" y2="190" style="stroke:var(--fuel)" stroke-width="2"/>
+      <line x1="146" y1="190" x2="146" y2="294" style="stroke:var(--idle)" stroke-width="2"/>
+      <line x1="146" y1="294" x2="150" y2="294" style="stroke:var(--idle)" stroke-width="2"/>
+      <rect x="133" y="244" width="10" height="14" rx="1" style="fill:var(--dark)"/>
+      <circle cx="142" cy="182" r="4.5" fill="none" style="stroke:var(--air)" stroke-width="1.5"/>
+      <rect x="128" y="298" width="12" height="7" rx="1" style="fill:var(--dark)"/>
+      <line x1="180" y1="345" x2="180" y2="372" style="stroke:var(--idle)" stroke-width="1.5" marker-end="url(#ar)"/>
+      <text x="180" y="390" text-anchor="middle">Campuran ke intake</text>
+      <g fill="none" style="stroke:var(--muted)" stroke-width="0.6" stroke-dasharray="3 3">
+        <polyline points="119,94 222,94"/><polyline points="172,150 222,150"/><polyline points="147,182 222,182"/>
+        <polyline points="143,251 222,251"/><polyline points="204,270 222,270"/><polyline points="152,296 222,296"/>
+        <polyline points="134,305 134,318 222,318"/><polyline points="106,318 106,340 222,340"/>
+      </g>
+      <text x="226" y="98">Main air bleed 0,70</text>
+      <text x="226" y="154">Nozzle di venturi</text>
+      <text x="226" y="186">Slow air bleed 0,80</text>
+      <text x="226" y="255">Pilot jet #50</text>
+      <text x="226" y="274">Throttle valve</text>
+      <text x="226" y="300">Idle port</text>
+      <text x="226" y="322">Sekrup campuran</text>
+      <text x="226" y="344">Main jet</text>
+      <text x="70" y="222" text-anchor="middle">Pelampung</text>
+    </svg>
+    <figcaption>Skematis, bukan gambar teknik. Letak lubang pada karbu Aisan asli bisa berbeda.</figcaption>
+  </figure>
+  <p>Saat langsam, throttle hampir tertutup, jadi bensin hanya lewat jalur langsam. Bensin mengalir dari main jet, naik lewat pilot jet #50, lalu bercampur udara dari slow air bleed 0,80 mm. Campuran itu keluar di idle port, dan jumlahnya diatur oleh sekrup campuran. Main air bleed dan nozzle venturi baru bekerja saat gas dibuka.</p>
+
+  <h2>Langkah selanjutnya</h2>
+  <ol>
+    <li><b>Setel celah klep</b> ke IN 0,20 mm dan EX 0,30 mm. Mulai dari silinder 1 di TMA langkah kompresi, lalu putar mesin 360° untuk menyetel klep sisanya.</li>
+    <li><b>Setel ulang langsam.</b> Panaskan mesin, putar sekrup campuran sampai RPM tertinggi dan paling halus, lalu turunkan RPM ke sekitar 750–800 lewat sekrup gas langsam. Ulangi sekali.</li>
+    <li><b>Cek posisi sekrup campuran</b> dengan tabel di bawah.</li>
+    <li><b>Tes jalan dan cek warna busi</b> untuk memastikan lubang 0,70 mm aman di beban berat.</li>
+    <li><b>Kalau masih bergetar:</b> tes cabut kabel busi per silinder, tes kompresi, lalu periksa engine mounting.</li>
+  </ol>
+
+  <h2>Penilaian posisi sekrup campuran</h2>
+  <div class="tbl"><table>
+    <tr><th>Posisi saat paling halus</th><th>Arti</th><th>Tindakan</th></tr>
+    <tr><td>1,5–3 putaran keluar</td><td>Cocok</td><td>Pertahankan pilot jet #50 dan air bleed 0,80 mm.</td></tr>
+    <tr><td>Kurang dari 1,5 putaran / hampir tertutup</td><td>Terlalu kaya</td><td>Perbesar air bleed langsam ke 0,90 mm, atau turunkan pilot jet ke #45.</td></tr>
+    <tr><td>Lebih dari 3 putaran keluar</td><td>Kurus</td><td>Naikkan pilot jet ke #52,5–#55.</td></tr>
+  </table></div>
+
+  <h2>Tes jalan dan warna busi</h2>
+  <div class="tbl"><table>
+    <tr><th>Warna busi / gejala</th><th>Arti</th><th>Tindakan</th></tr>
+    <tr><td>Cokelat muda, tidak ngelitik</td><td>Aman</td><td>Pertahankan.</td></tr>
+    <tr><td>Hitam, boros, asap hitam</td><td>Campuran kaya</td><td>Perbesar lubang 0,70 mm bertahap (+0,05 mm).</td></tr>
+    <tr><td>Putih, ngelitik, suhu naik</td><td><b>Campuran kurus</b></td><td><b>Ganti dengan jet atau air bleed baru</b>, karena lubang tidak bisa dikecilkan.</td></tr>
+  </table></div>
+
+  <h2>Peringatan</h2>
+  <div class="box warn"><ul>
+    <li><b>Jangan mengebor lagi</b> sebelum ada acuan ukuran asli. Lubang yang sudah dibor tidak bisa dikecilkan.</li>
+    <li>Ubah satu komponen per percobaan, dan maksimal satu step per tahap.</li>
+    <li>Main jet tidak memengaruhi langsam. Jangan diganti selama hasil tes jalan dan warna busi normal.</li>
+    <li>Ukuran air bleed, bukaan sekrup, RPM langsam, dan main jet di halaman ini adalah estimasi atau angka yang belum terverifikasi. Pastikan dengan buku servis resmi Toyota 5K atau repair kit karbu Aisan asli.</li>
+  </ul></div>
+
+  <p class="src">Sumber: <a href="https://www.scribd.com/document/389031911/Transcript-Rifqi">tutorial penyetelan celah klep Kijang 5K</a> (celah klep) · <a href="https://www.answers.com/asian-cars/What_is_the_stock_jet_size_of_a_Toyota_5k_engine_carburetor">answers.com</a> (main jet, belum terverifikasi).</p>
+
+  <footer>
+    <a href="rangkuman-kijang-5k.pdf" download>Unduh PDF</a>
+    <a href="qr.png" download>Unduh QR</a>
+    <a href="../">Semua proyek</a>
+  </footer>
+</main>
+</body>
+</html>

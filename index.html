@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEMBRE Projects</title>
+<meta name="description" content="Kumpulan halaman proyek SEMBRE untuk dibagikan lewat link dan QR code.">
+<style>
+  :root { --bg:#f7f7f5; --card:#ffffff; --text:#1b1b1b; --muted:#6b6b6b; --line:#e3e3df; --accent:#0f6e56; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141414; --card:#1e1e1e; --text:#ececec; --muted:#9a9a9a; --line:#2e2e2e; --accent:#3fbf95; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:48px 16px 64px; }
+  h1 { font-size:28px; margin:0 0 4px; letter-spacing:-0.01em; }
+  .sub { color:var(--muted); margin:0 0 32px; }
+  ul { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
+  li a { display:block; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; color:inherit; text-decoration:none; }
+  li a:hover { border-color:var(--accent); }
+  .name { font-weight:600; }
+  .meta { color:var(--muted); font-size:14px; }
+  .empty { background:var(--card); border:1px dashed var(--line); border-radius:10px; padding:24px; color:var(--muted); text-align:center; }
+  footer { margin-top:40px; color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SEMBRE Projects</h1>
+  <p class="sub">Halaman proyek untuk dibagikan lewat link dan QR code.</p>
+
+  <!-- Tambahkan proyek baru di sini: <li><a href="nama-proyek/"><div class="name">Nama</div><div class="meta">Keterangan · tanggal</div></a></li> -->
+  <ul id="projects"></ul>
+  <div class="empty" id="empty">Belum ada proyek. Proyek baru akan muncul di sini.</div>
+
+  <footer>sembre.github.io/project</footer>
+</main>
+<script>
+  // Sembunyikan pesan kosong bila sudah ada proyek
+  if (document.querySelectorAll('#projects li').length) document.getElementById('empty').hidden = true;
+</script>
+</body>
+</html>

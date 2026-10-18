@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta property="og:title" content="Simulator Karbu Kijang 5K">
+<meta property="og:description" content="Simulasi interaktif percampuran udara-bensin karbu Aisan Kijang 5K: jet, air bleed, sekrup campuran, celah klep, AFR, RPM, dan getaran langsam.">
+<meta property="og:url" content="https://sembre.github.io/project/simulator-karbu-kijang-5k/">
+<title>Simulator Karbu Kijang 5K</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Simulasi interaktif percampuran udara-bensin karburator Aisan Kijang 5K: pilot jet, air bleed, sekrup campuran, main jet, celah klep, dan getaran langsam.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: panel bengkel — kolom kontrol (kiri) dan instrumen (kanan), menumpuk di HP */
+:root{
+  --bg:#eef0ee; --panel:#ffffff; --ink:#1d2422; --muted:#5d6a66; --line:#d5dbd8; --sunk:#f4f6f5;
+  --fuel:#b8730f; --fuel-soft:#f6e3c2; --air:#2f6fb0; --air-soft:#dbe8f5;
+  --ok:#2c7a4e; --ok-soft:#dcefe3; --warn:#a96a00; --warn-soft:#fbecd0; --bad:#b23a2a; --bad-soft:#f7ddd8;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121615; --panel:#1b2120; --ink:#e7ecea; --muted:#9aa8a3; --line:#2d3633; --sunk:#161b1a;
+  --fuel:#e8a547; --fuel-soft:#3a2a12; --air:#6aa6e4; --air-soft:#16273a;
+  --ok:#5cc58a; --ok-soft:#173023; --warn:#f0b04a; --warn-soft:#33270f; --bad:#ef7a68; --bad-soft:#3a1c17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121615; --panel:#1b2120; --ink:#e7ecea; --muted:#9aa8a3; --line:#2d3633; --sunk:#161b1a;
+  --fuel:#e8a547; --fuel-soft:#3a2a12; --air:#6aa6e4; --air-soft:#16273a;
+  --ok:#5cc58a; --ok-soft:#173023; --warn:#f0b04a; --warn-soft:#33270f; --bad:#ef7a68; --bad-soft:#3a1c17; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0}[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:1120px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
+h1{font:700 34px/1.05 var(--display);letter-spacing:.01em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:600 14px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 12px;border-radius:6px;cursor:pointer}
+button:hover{border-color:var(--fuel)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--air);outline-offset:2px}
+button.primary{background:var(--fuel);border-color:var(--fuel);color:#fff}
+:root[data-theme="dark"] button.primary{color:#1b1206}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.primary{color:#1b1206}}
+.grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.panel+.panel{margin-top:16px}
+h2{font:600 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.ctl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 0;border-top:1px solid var(--line)}
+.ctl:first-of-type{border-top:0;padding-top:0}
+.ctl label{font-weight:600}
+.ctl .val{font:600 14px var(--mono);font-variant-numeric:tabular-nums;color:var(--fuel);text-align:right}
+.ctl input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--fuel)}
+.ctl .hint{grid-column:1/-1;color:var(--muted);font-size:13px}
+.ctl.air .val{color:var(--air)}.ctl.air input{accent-color:var(--air)}
+.toggles{display:flex;flex-wrap:wrap;gap:16px;padding-top:10px;border-top:1px solid var(--line)}
+.toggles label{display:flex;gap:6px;align-items:center;font-weight:500}
+.top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+@media (max-width:560px){.top{grid-template-columns:minmax(0,1fr)}}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat .k{font:600 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font:700 30px/1.1 var(--mono);font-variant-numeric:tabular-nums;margin-top:4px}
+.stat .n{font-size:13px;color:var(--muted);margin-top:2px}
+.pill{display:inline-block;font:600 12px var(--body);padding:2px 8px;border-radius:99px;margin-top:6px}
+.p-ok{background:var(--ok-soft);color:var(--ok)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}
+.meter{height:8px;border-radius:4px;background:var(--sunk);border:1px solid var(--line);overflow:hidden;margin-top:8px}
+.meter>i{display:block;height:100%;width:0;transition:width .25s}
+.plug{display:flex;align-items:center;gap:10px;margin-top:6px}
+.plug svg{flex:none}
+.afr-row{display:grid;grid-template-columns:96px minmax(0,1fr) 64px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.afr-row:first-of-type{border-top:0}
+.afr-row .lbl{font-weight:600;line-height:1.2}.afr-row .lbl small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.afr-row .num{font:600 16px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.scale{position:relative;height:26px}
+.scale svg{width:100%;height:26px;display:block}
+.axis{display:grid;grid-template-columns:96px minmax(0,1fr) 64px;gap:10px;font:12px var(--mono);color:var(--muted)}
+.axis div:nth-child(2){display:flex;justify-content:space-between}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{font:12px var(--mono);fill:var(--muted)}
+.diag{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.diag li{padding:10px 12px;border-radius:6px;border-left:4px solid;line-height:1.45}
+.diag li b{display:block}
+.d-ok{background:var(--ok-soft);border-color:var(--ok)}.d-warn{background:var(--warn-soft);border-color:var(--warn)}.d-bad{background:var(--bad-soft);border-color:var(--bad)}
+.note{color:var(--muted);font-size:13px;margin-top:16px;max-width:90ch}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-top:8px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Simulator karbu Kijang 5K</h1>
+      <p class="sub">Geser komponen karburator Aisan dan celah klep, lalu lihat pengaruhnya ke AFR, RPM langsam, getaran, dan warna busi.</p>
+    </div>
+    <div class="presets">
+      <button id="pAwal" type="button">Kondisi awal (klep rapat)</button>
+      <button id="pKlep" type="button">Klep sudah disetel</button>
+      <button id="pAuto" class="primary" type="button">Jalankan prosedur setel langsam</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div>
+      <section class="panel" aria-labelledby="h-langsam">
+        <h2 id="h-langsam">Sirkuit langsam</h2>
+        <div class="ctl"><label for="pj">Pilot jet</label><span class="val" id="pjV"></span>
+          <input id="pj" type="range" min="40" max="60" step="2.5" value="50"><span class="hint">Lebih besar = bensin langsam lebih banyak (kaya)</span></div>
+        <div class="ctl air"><label for="sab">Slow air bleed</label><span class="val" id="sabV"></span>
+          <input id="sab" type="range" min="0.6" max="1.2" step="0.05" value="0.8"><span class="hint">Lebih besar = lebih banyak udara (kurus)</span></div>
+        <div class="ctl"><label for="scr">Sekrup campuran</label><span class="val" id="scrV"></span>
+          <input id="scr" type="range" min="0" max="4" step="0.125" value="2"><span class="hint">Diputar keluar = lebih kaya</span></div>
+        <div class="ctl air"><label for="rpmSet">Sekrup gas langsam</label><span class="val" id="rpmSetV"></span>
+          <input id="rpmSet" type="range" min="550" max="1050" step="25" value="775"><span class="hint">Bukaan throttle saat langsam</span></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-utama">
+        <h2 id="h-utama">Sirkuit utama</h2>
+        <div class="ctl"><label for="mj">Main jet primer</label><span class="val" id="mjV"></span>
+          <input id="mj" type="range" min="110" max="160" step="2.5" value="130"><span class="hint">Penentu utama AFR di putaran menengah dan tinggi</span></div>
+        <div class="ctl air"><label for="mab">Main air bleed</label><span class="val" id="mabV"></span>
+          <input id="mab" type="range" min="0.5" max="0.9" step="0.05" value="0.7"><span class="hint">Lebih besar = makin kurus saat RPM naik</span></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-mesin">
+        <h2 id="h-mesin">Kondisi mesin</h2>
+        <div class="ctl"><label for="vin">Celah klep isap (IN)</label><span class="val" id="vinV"></span>
+          <input id="vin" type="range" min="0.1" max="0.3" step="0.01" value="0.15"><span class="hint">Spesifikasi 0,20 mm</span></div>
+        <div class="ctl"><label for="vex">Celah klep buang (EX)</label><span class="val" id="vexV"></span>
+          <input id="vex" type="range" min="0.2" max="0.4" step="0.01" value="0.25"><span class="hint">Spesifikasi 0,30 mm</span></div>
+        <div class="toggles">
+          <label><input id="leak" type="checkbox"> Ada kebocoran vakum</label>
+          <label><input id="mount" type="checkbox"> Engine mounting lemah</label>
+        </div>
+      </section>
+    </div>
+
+    <div>
+      <div class="top">
+        <div class="stat"><div class="k">RPM langsam</div><div class="v" id="oRpm">–</div><div class="n" id="oRpmN"></div><span class="pill" id="oRpmP"></span></div>
+        <div class="stat"><div class="k">Getaran langsam</div><div class="v" id="oVib">–</div><div class="meter"><i id="oVibBar"></i></div><span class="pill" id="oVibP"></span></div>
+        <div class="stat"><div class="k">Warna busi</div>
+          <div class="plug"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="var(--line)" stroke-width="2"/><circle id="oPlugC" cx="17" cy="17" r="11"/><circle cx="17" cy="17" r="3" fill="var(--panel)"/></svg>
+          <div><div class="v" style="font-size:20px" id="oPlug">–</div><div class="n" id="oPlugN"></div></div></div></div>
+      </div>
+
+      <section class="panel" aria-labelledby="h-afr">
+        <h2 id="h-afr">Rasio udara : bensin (AFR)</h2>
+        <div id="afrRows"></div>
+        <div class="axis" aria-hidden="true"><div></div><div><span>10</span><span>12</span><span>14</span><span>16</span><span>18</span></div><div></div></div>
+        <div class="legend"><span style="--c:var(--ok-soft)">Zona target</span><span style="--c:var(--fuel)">Nilai sekarang</span><span style="--c:var(--muted)">14,7 stoikiometri</span></div>
+      </section>
+
+      <section class="panel chart" aria-labelledby="h-curve">
+        <h2 id="h-curve">RPM langsam terhadap bukaan sekrup campuran</h2>
+        <svg id="curve" viewBox="0 0 640 250" role="img" aria-label="Kurva RPM terhadap bukaan sekrup campuran"></svg>
+        <div class="legend"><span style="--c:var(--air)">Kurva RPM</span><span style="--c:var(--fuel)">Posisi sekrup sekarang</span><span style="--c:var(--ok)">Titik paling halus</span></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-diag">
+        <h2 id="h-diag">Diagnosis dan tindakan</h2>
+        <ul class="diag" id="diag"></ul>
+      </section>
+    </div>
+  </div>
+
+  <p class="note">Model ini ilustratif. Rumusnya disusun agar arah pengaruh tiap komponen benar (kaya/kurus, naik/turun), dan angka acuannya dikalibrasi ke kondisi percakapan: pilot jet #50, slow air bleed 0,80 mm, main air bleed 0,70 mm, main jet #130. Ini bukan data pabrik Toyota/Aisan dan tidak menggantikan pengukuran dengan wideband O₂, tachometer, atau buku servis resmi.</p>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const ids=["pj","sab","scr","rpmSet","mj","mab","vin","vex"];
+const fmt=(v,d)=>Number(v).toFixed(d).replace(".",",");
+const TARGET={idle:[13.8,14.5],trans:[13.5,14.8],cruise:[14.5,15.2],full:[12.5,13.2]};
+const fs=s=>1-Math.exp(-s/1.3);
+const g=a=>Math.exp(-Math.pow((a-13.0)/2.6,2));
+
+function read(){const o={};ids.forEach(k=>o[k]=parseFloat($(k).value));o.leak=$("leak").checked;o.mount=$("mount").checked;return o}
+
+function idleAFR(p,s){
+  if(s<0.2) return 30;
+  let a=14.0*Math.pow(0.5/(p.pj/100),2)*Math.pow(p.sab/0.8,0.6)*(fs(2)/fs(s))*Math.pow(p.rpmSet/775,0.3);
+  if(p.leak) a*=1.12;
+  return a;
+}
+function engine(p){
+  const tight=Math.max(0,0.20-p.vin)+Math.max(0,0.30-p.vex);
+  const loose=Math.max(0,p.vin-0.20)+Math.max(0,p.vex-0.30);
+  const comp=1-Math.min(0.3,tight*2.5);
+  const rpmAt=s=>{const a=idleAFR(p,s); if(a>19||a<9.5) return 0; return p.rpmSet*(g(a)/g(14.0))*Math.sqrt(comp)};
+  const idle=idleAFR(p,p.scr);
+  const trans=14.2*Math.pow(0.5/(p.pj/100),2)*Math.pow(p.sab/0.8,0.9)*(p.leak?1.05:1);
+  const cruise=14.7*Math.pow(1.30/(p.mj/100),2)*Math.pow(p.mab/0.70,0.35);
+  const full=12.9*Math.pow(1.30/(p.mj/100),2)*Math.pow(p.mab/0.70,0.8);
+  const rpm=rpmAt(p.scr);
+  let sPeak=0,rPeak=0;for(let s=0;s<=4.0001;s+=0.0625){const r=rpmAt(s);if(r>rPeak){rPeak=r;sPeak=s}}
+  let v=0;
+  if(idle>14.8) v+=Math.min(45,(idle-14.8)*18);
+  if(idle<13.5) v+=Math.min(35,(13.5-idle)*14);
+  if(rpm<700) v+=Math.min(40,(700-rpm)/4);
+  v+=tight*260;
+  if(p.mount) v=v*1.4+12;
+  if(rpm===0) v=100;
+  v=Math.max(0,Math.min(100,v));
+  return {tight,loose,comp,idle,trans,cruise,full,rpm,rpmAt,sPeak,rPeak,vib:v};
+}
+
+function afrBar(key,label,sub,val){
+  const lo=10,hi=18,X=x=>Math.max(0,Math.min(100,(x-lo)/(hi-lo)*100));
+  const [a,b]=TARGET[key];const inZone=val>=a&&val<=b;
+  const col=inZone?"var(--ok)":(Math.abs(val-(val<a?a:b))>1?"var(--bad)":"var(--warn)");
+  const shown=val>=25?"mati":fmt(val,1);
+  return `<div class="afr-row"><div class="lbl">${label}<small>${sub}</small></div>
+  <div class="scale"><svg viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true">
+   <rect x="0" y="9" width="100" height="8" rx="2" fill="var(--sunk)" stroke="var(--line)" stroke-width=".4"/>
+   <rect x="${X(a)}" y="9" width="${X(b)-X(a)}" height="8" fill="var(--ok-soft)"/>
+   <line x1="${X(14.7)}" x2="${X(14.7)}" y1="5" y2="21" stroke="var(--muted)" stroke-width=".5" stroke-dasharray="1.5 1.5"/>
+   <rect x="${X(val)-1}" y="3" width="2" height="20" rx="1" fill="${col}"/></svg></div>
+  <div class="num" style="color:${col}">${shown}</div></div>`;
+}
+
+function drawCurve(p,e){
+  const W=640,H=250,L=48,R=16,T=14,B=40;
+  const sx=s=>L+s/4*(W-L-R);
+  const maxR=Math.max(1100,Math.ceil(e.rPeak/100)*100+100);
+  const sy=r=>T+(1-r/maxR)*(H-T-B);
+  let path="",started=false;
+  for(let s=0;s<=4.0001;s+=0.0625){const r=e.rpmAt(s);if(r<=0){started=false;continue}path+=(started?"L":"M")+sx(s).toFixed(1)+" "+sy(r).toFixed(1)+" ";started=true}
+  let grid="";
+  for(let r=0;r<=maxR;r+=200){grid+=`<line x1="${L}" x2="${W-R}" y1="${sy(r)}" y2="${sy(r)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${sy(r)+4}" text-anchor="end">${r}</text>`}
+  for(let s=0;s<=4;s++){grid+=`<text x="${sx(s)}" y="${H-B+18}" text-anchor="middle">${s}</text>`}
+  grid+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">putaran keluar dari tertutup</text>`;
+  const band=`<rect x="${sx(1.5)}" y="${T}" width="${sx(3)-sx(1.5)}" height="${H-T-B}" fill="var(--ok-soft)" opacity=".6"/>`;
+  const peak=e.rPeak>0?`<line x1="${sx(e.sPeak)}" x2="${sx(e.sPeak)}" y1="${T}" y2="${H-B}" stroke="var(--ok)" stroke-width="1.5" stroke-dasharray="4 4"/>`:"";
+  const cur=e.rpm>0?`<circle cx="${sx(p.scr)}" cy="${sy(e.rpm)}" r="6" fill="var(--fuel)" stroke="var(--panel)" stroke-width="2"/>`:`<circle cx="${sx(p.scr)}" cy="${sy(0)}" r="6" fill="var(--bad)"/>`;
+  $("curve").innerHTML=band+grid+`<path d="${path}" fill="none" stroke="var(--air)" stroke-width="2.5"/>`+peak+cur;
+}
+
+function pill(el,cls,txt){el.className="pill "+cls;el.textContent=txt}
+
+function render(){
+  const p=read(),e=engine(p);
+  $("pjV").textContent="#"+fmt(p.pj,p.pj%1?1:0);
+  $("sabV").textContent=fmt(p.sab,2)+" mm";
+  $("scrV").textContent=fmt(p.scr,3).replace(/,?0+$/,"")+" put.";
+  $("rpmSetV").textContent=Math.round(p.rpmSet)+" (stel)";
+  $("mjV").textContent="#"+fmt(p.mj,p.mj%1?1:0);
+  $("mabV").textContent=fmt(p.mab,2)+" mm";
+  $("vinV").textContent=fmt(p.vin,2)+" mm";
+  $("vexV").textContent=fmt(p.vex,2)+" mm";
+
+  $("afrRows").innerHTML=
+    afrBar("idle","Langsam","target 13,8–14,5",e.idle)+
+    afrBar("trans","Transisi","gas mulai dibuka",e.trans)+
+    afrBar("cruise","Cruising","2.000–3.000 rpm",e.cruise)+
+    afrBar("full","Beban penuh","target 12,5–13,2",e.full);
+
+  const rpm=Math.round(e.rpm/5)*5;
+  $("oRpm").textContent=rpm?rpm.toLocaleString("id-ID"):"mati";
+  $("oRpmN").textContent="Acuan 750–800 rpm";
+  if(!rpm) pill($("oRpmP"),"p-bad","Mesin mati");
+  else if(rpm<700) pill($("oRpmP"),"p-bad","Terlalu rendah");
+  else if(rpm>900) pill($("oRpmP"),"p-warn","Terlalu tinggi");
+  else pill($("oRpmP"),"p-ok","Normal");
+
+  const v=Math.round(e.vib);
+  $("oVib").textContent=v+"/100";
+  const vb=$("oVibBar");vb.style.width=v+"%";
+  vb.style.background=v<20?"var(--ok)":v<45?"var(--warn)":"var(--bad)";
+  if(v<20) pill($("oVibP"),"p-ok","Halus"); else if(v<45) pill($("oVibP"),"p-warn","Sedikit bergetar"); else pill($("oVibP"),"p-bad","Bergetar");
+
+  let plug,plugC,plugN;
+  if(e.full>13.5){plug="Putih";plugC="#e9e6dc";plugN="Campuran kurus di beban berat"}
+  else if(e.cruise<13.8||e.full<12.0||e.idle<12.8){plug="Hitam";plugC="#2a2a28";plugN="Campuran terlalu kaya"}
+  else {plug="Cokelat muda";plugC="#b8865a";plugN="Campuran pas"}
+  $("oPlug").textContent=plug;$("oPlugN").textContent=plugN;$("oPlugC").setAttribute("fill",plugC);
+
+  drawCurve(p,e);
+
+  const D=[];
+  const add=(c,t,d)=>D.push(`<li class="d-${c}"><b>${t}</b>${d}</li>`);
+  if(e.tight>0.005) add("bad","Celah klep terlalu rapat",`Kurang ${fmt(e.tight,2)} mm dari spesifikasi. Klep tidak menutup rapat saat panas, kompresi bocor, langsam bergetar. Setel ke IN 0,20 / EX 0,30 mm sebelum menyetel karbu.`);
+  else if(e.loose>0.04) add("warn","Celah klep terlalu renggang",`Lebih ${fmt(e.loose,2)} mm. Mesin berisik (tik-tik) dan bukaan klep berkurang. Setel ke spesifikasi.`);
+  else add("ok","Celah klep sesuai","Kompresi aman, getaran dari klep sudah tidak ada.");
+  if(!rpm) add("bad","Mesin mati saat langsam","Sekrup campuran terlalu tertutup atau campuran terlalu kurus/kaya. Buka sekrup ke 2 putaran lalu setel ulang.");
+  if(p.leak) add("bad","Kebocoran vakum","Udara palsu masuk dan membuat langsam kurus serta tidak stabil. Cari kebocoran dengan carb cleaner di gasket intake dan selang vakum.");
+  if(p.mount) add("warn","Engine mounting lemah","Getaran mesin diteruskan ke bodi. Mesin bisa halus, tapi kabin tetap bergetar. Ganti karet mounting.");
+  if(rpm){
+    if(p.scr>3.5) add("warn","Sekrup campuran lebih dari 3,5 putaran","Jalur langsam kurus. Perkecil slow air bleed (−0,1 mm) atau naikkan pilot jet ke #52,5–#55.");
+    else if(p.scr<1.5) add("warn","Sekrup campuran kurang dari 1,5 putaran","Jalur langsam kaya. Perbesar slow air bleed ke 0,90 mm atau turunkan pilot jet ke #45.");
+    else add("ok","Posisi sekrup campuran wajar (1,5–3 putaran)","Kombinasi pilot jet dan slow air bleed cocok.");
+    if(Math.abs(p.scr-e.sPeak)>0.4) add("warn","Sekrup belum di titik paling halus",`Titik RPM tertinggi ada di sekitar ${fmt(e.sPeak,2)} putaran. Tekan "Jalankan prosedur setel langsam" untuk melihat caranya.`);
+  }
+  if(e.trans>15.5) add("bad","Transisi kurus","Mesin tersendat (ngempos) saat gas mulai dibuka. Perkecil slow air bleed atau naikkan pilot jet.");
+  else if(e.trans<12.5) add("warn","Transisi kaya","Brebet dan bau bensin saat gas mulai dibuka. Perbesar slow air bleed.");
+  if(e.full>13.5) add("bad","Beban penuh terlalu kurus",`AFR ${fmt(e.full,1)}. Risiko ngelitik dan klep/piston kepanasan. Naikkan main jet atau ganti main air bleed dengan yang lebih kecil.`);
+  else if(e.full<12.0) add("warn","Beban penuh terlalu kaya",`AFR ${fmt(e.full,1)}. Boros dan asap hitam. Turunkan main jet satu step.`);
+  else add("ok","Sirkuit utama aman",`Cruising ${fmt(e.cruise,1)}, beban penuh ${fmt(e.full,1)}.`);
+  $("diag").innerHTML=D.join("");
+}
+
+function setVals(o){for(const k in o){const el=$(k);if(el.type==="checkbox") el.checked=o[k]; else el.value=o[k]}render()}
+
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function animateTo(target,ms,done){
+  const from={};for(const k in target) from[k]=parseFloat($(k).value);
+  if(reduce){setVals(target);done&&done();return}
+  const t0=performance.now();
+  (function step(t){const f=Math.min(1,(t-t0)/ms),ease=f<.5?2*f*f:1-Math.pow(-2*f+2,2)/2;
+    for(const k in target){const el=$(k),st=parseFloat(el.step);el.value=Math.round((from[k]+(target[k]-from[k])*ease)/st)*st}
+    render(); if(f<1) requestAnimationFrame(step); else {setVals(target);done&&done()}})(t0);
+}
+
+$("pAwal").onclick=()=>setVals({pj:50,sab:0.8,scr:2,rpmSet:775,mj:130,mab:0.7,vin:0.15,vex:0.25,leak:false,mount:false});
+$("pKlep").onclick=()=>setVals({vin:0.20,vex:0.30});
+$("pAuto").onclick=()=>{
+  const p=read(),e=engine(p);
+  const s1=Math.min(4,Math.max(0,e.sPeak));
+  animateTo({scr:s1},700,()=>{
+    const s2=Math.max(0,s1-0.125);
+    animateTo({scr:s2},400,()=>{
+      const p2=read(),e2=engine(p2);
+      const ratio=e2.rpm>0?e2.rpm/p2.rpmSet:1;
+      const target=Math.max(550,Math.min(1050,Math.round(775/ratio/25)*25));
+      animateTo({rpmSet:target},600);
+    });
+  });
+};
+ids.forEach(k=>$(k).addEventListener("input",render));
+["leak","mount"].forEach(k=>$(k).addEventListener("change",render));
+render();
+</script>
+<footer style="max-width:1120px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 32px;display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px"><a href="qr.png" download style="color:var(--air)">Unduh QR</a><a href="../kijang-5k-karburator-langsam/" style="color:var(--air)">Rangkuman troubleshooting</a><a href="../" style="color:var(--air)">Semua proyek</a></footer>
+</body>
+</html>

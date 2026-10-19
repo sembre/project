@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta property="og:title" content="Simulator Karbu Kijang 5K">
-<meta property="og:description" content="Simulasi interaktif percampuran udara-bensin karbu Aisan Kijang 5K: jet, air bleed, sekrup campuran, celah klep, AFR, RPM, dan getaran langsam.">
+<meta property="og:description" content="Simulasi interaktif dan animasi percampuran udara-bensin karbu Aisan Kijang 5K: jet, air bleed, sekrup campuran, celah klep, AFR, RPM, getaran, asap knalpot.">
 <meta property="og:url" content="https://sembre.github.io/project/simulator-karbu-kijang-5k/">
 <title>Simulator Karbu Kijang 5K</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -86,6 +86,12 @@ h2{font:600 15px var(--display);letter-spacing:.08em;text-transform:uppercase;co
 .note{color:var(--muted);font-size:13px;margin-top:16px;max-width:90ch}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-top:8px}
 .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.anim canvas{display:block;width:100%;height:auto;aspect-ratio:640/290;border-radius:8px;background:var(--sunk);border:1px solid var(--line)}
+.modes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px 16px;margin-top:12px}
+.read div{min-width:0}.read .k{font:600 12px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.read .v{font:600 15px var(--mono);font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -146,6 +152,24 @@ h2{font:600 15px var(--display);letter-spacing:.08em;text-transform:uppercase;co
           <div class="plug"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="var(--line)" stroke-width="2"/><circle id="oPlugC" cx="17" cy="17" r="11"/><circle cx="17" cy="17" r="3" fill="var(--panel)"/></svg>
           <div><div class="v" style="font-size:20px" id="oPlug">–</div><div class="n" id="oPlugN"></div></div></div></div>
       </div>
+
+      <section class="panel anim" aria-labelledby="h-anim">
+        <h2 id="h-anim">Animasi hasil setelan</h2>
+        <div class="modes" role="group" aria-label="Kondisi mesin">
+          <button type="button" data-mode="idle" aria-pressed="true">Langsam</button>
+          <button type="button" data-mode="cruise" aria-pressed="false">Cruising</button>
+          <button type="button" data-mode="full" aria-pressed="false">Gas penuh</button>
+        </div>
+        <canvas id="eng" width="640" height="290" role="img" aria-label="Animasi karburator, 4 silinder, dan knalpot yang mengikuti setelan"></canvas>
+        <div class="read" aria-live="polite">
+          <div><div class="k">RPM</div><div class="v" id="aRpm">–</div></div>
+          <div><div class="k">AFR</div><div class="v" id="aAfr">–</div></div>
+          <div><div class="k">Pembakaran</div><div class="v" id="aFire">–</div></div>
+          <div><div class="k">Asap knalpot</div><div class="v" id="aSmoke">–</div></div>
+          <div><div class="k">Ngelitik</div><div class="v" id="aKnock">–</div></div>
+        </div>
+        <div class="legend"><span style="--c:var(--air)">Udara</span><span style="--c:var(--fuel)">Bensin</span><span style="--c:#6fa8ff">Pembakaran sempurna</span><span style="--c:#ff9a2e">Pembakaran kaya</span><span style="--c:var(--bad)">Ngelitik</span></div>
+      </section>
 
       <section class="panel" aria-labelledby="h-afr">
         <h2 id="h-afr">Rasio udara : bensin (AFR)</h2>
@@ -279,6 +303,7 @@ function render(){
   $("oPlug").textContent=plug;$("oPlugN").textContent=plugN;$("oPlugC").setAttribute("fill",plugC);
 
   drawCurve(p,e);
+  setAnim(p,e);
 
   const D=[];
   const add=(c,t,d)=>D.push(`<li class="d-${c}"><b>${t}</b>${d}</li>`);
@@ -330,9 +355,146 @@ $("pAuto").onclick=()=>{
     });
   });
 };
+
+/* ---------- Animasi ---------- */
+const cv=$("eng"),cx=cv.getContext("2d"),LW=640,LH=290;
+let mode="idle",AP=null,AE=null,T={rpm:0,afr:14,mis:0,knock:0,smoke:0,lean:0,vib:0,thr:8},S={...T};
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x));
+function targets(p,e,m){
+  let r={};
+  if(m==="idle"){r.rpm=e.rpm;r.afr=e.idle;r.thr=8;
+    r.mis=cl((r.afr-15.2)*.18,0,.6)+cl((12.6-r.afr)*.12,0,.4)+cl(e.tight*1.2,0,.25)+(p.leak?.08:0);r.knock=0;r.vib=e.vib;}
+  else if(m==="cruise"){r.rpm=2500;r.afr=e.cruise;r.thr=35;r.mis=cl((r.afr-16)*.15,0,.5)+cl(e.tight*1.2,0,.2);r.knock=0;}
+  else {r.rpm=3600;r.afr=e.full;r.thr=80;r.knock=cl((r.afr-13.4)/1.6,0,1);r.mis=cl((r.afr-16.5)*.1,0,.4)+cl(e.tight,0,.2);}
+  r.mis=cl(r.mis,0,.8);
+  if(m!=="idle") r.vib=cl(6+r.mis*70+r.knock*20+(p.mount?12:0),0,100);
+  r.smoke=cl((13.4-r.afr)/2.2,0,1); r.lean=cl((r.afr-15.5)/2,0,1);
+  return r;
+}
+function setAnim(p,e){AP=p;AE=e;T=targets(p,e,mode);words();if(reduce) frame(0)}
+function words(){
+  const dead=T.rpm<=0;
+  $("aFire").textContent=dead?"Mesin mati":T.mis<.05?"Stabil":T.mis<.2?"Sesekali misfire":"Sering misfire";
+  $("aSmoke").textContent=dead?"–":T.smoke>.5?"Hitam pekat":T.smoke>.15?"Abu kehitaman":T.lean>.3?"Bersih, kadang meletup":"Bersih";
+  $("aKnock").textContent=T.knock>.6?"Ya, keras":T.knock>.15?"Ringan":"Tidak";
+  $("aKnock").style.color=T.knock>.15?"var(--bad)":"";
+  $("aFire").style.color=dead||T.mis>=.2?"var(--bad)":T.mis>=.05?"var(--warn)":"var(--ok)";
+}
+document.querySelectorAll(".modes button").forEach(b=>b.addEventListener("click",()=>{
+  mode=b.dataset.mode;document.querySelectorAll(".modes button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  if(AP) setAnim(AP,AE);
+}));
+let C={};function colors(){const cs=getComputedStyle(document.documentElement);["ink","muted","line","panel","sunk","fuel","air","bad","ok"].forEach(k=>C[k]=cs.getPropertyValue("--"+k).trim())}
+colors();matchMedia("(prefers-color-scheme: dark)").addEventListener("change",colors);
+new MutationObserver(colors).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+function fit(){const w=cv.clientWidth||640,d=window.devicePixelRatio||1;cv.width=Math.round(w*d);cv.height=Math.round(w*LH/LW*d)}
+fit();addEventListener("resize",()=>{fit();if(reduce)frame(0)});
+/* jalur campuran: throat karbu -> intake manifold -> kepala silinder */
+const PATH=[[90,22],[90,212],[106,230],[196,230],[206,220],[206,72],[224,62]];
+const SEG=[];let PL=0;for(let i=1;i<PATH.length;i++){const l=Math.hypot(PATH[i][0]-PATH[i-1][0],PATH[i][1]-PATH[i-1][1]);SEG.push(l);PL+=l}
+function at(d,o){let i=0;while(i<SEG.length-1&&d>SEG[i]){d-=SEG[i];i++}
+  const [x0,y0]=PATH[i],[x1,y1]=PATH[i+1],t=cl(d/SEG[i],0,1),dx=(x1-x0)/SEG[i],dy=(y1-y0)/SEG[i];
+  let x=x0+(x1-x0)*t,y=y0+(y1-y0)*t,k=1;if(i===0)k=1-.45*Math.exp(-Math.pow((y-95)/22,2));
+  return [x-dy*o*k,y+dx*o*k]}
+const D_NOZ=73,D_IDLE=168;let parts=[],puffs=[],spawnA=0,spawnF=0,theta=0,prevPhi=[0,0,0,0],flash=[0,0,0,0],fType=["ok","ok","ok","ok"],jolt=0,time=0;
+const CYX=[262,322,382,442],COFF=[0,Math.PI,Math.PI,0],FOFF=[0,3*Math.PI,Math.PI,2*Math.PI];
+function step(dt){
+  for(const k in S) S[k]+=(T[k]-S[k])*Math.min(1,dt*3.5);
+  time+=dt;const run=T.rpm>0;
+  const hz=run?S.rpm/775*1.4:0;theta+=hz*2*Math.PI*dt;
+  if(run){
+    const ra=25+S.rpm/40, rf=ra*(14.7/Math.max(8,S.afr))*.38;
+    spawnA+=ra*dt;spawnF+=rf*dt;
+    while(spawnA>=1){spawnA--;parts.push({d:0,o:(Math.random()*2-1)*15,f:0})}
+    while(spawnF>=1){spawnF--;const idle=mode==="idle";parts.push({d:idle?D_IDLE:D_NOZ,o:idle?13:(Math.random()*2-1)*4,f:1,spread:idle?-1:0})}
+  }
+  const v=(60+S.rpm/12)*dt;
+  for(const q of parts){q.d+=v*(q.f?1.05:1);if(q.f&&q.spread!==undefined&&q.d>D_IDLE+10&&q.spread<0){q.o+=(Math.random()*2-1)*6;q.spread=0}else if(q.f&&q.d>D_NOZ+12&&q.spread===0&&mode!=="idle"){q.o+=(Math.random()*2-1)*10;q.spread=1}}
+  parts=parts.filter(q=>q.d<PL);if(parts.length>500)parts.splice(0,parts.length-500);
+  for(let i=0;i<4;i++){
+    const phi=((theta+FOFF[i])%(4*Math.PI)+4*Math.PI)%(4*Math.PI);
+    if(run&&phi<prevPhi[i]){
+      const mis=Math.random()<S.mis;
+      if(mis){fType[i]="mis";jolt+=2.2+S.vib/25;flash[i]=0}
+      else{flash[i]=1;fType[i]=S.knock>.15&&Math.random()<S.knock+.2?"knock":S.smoke>.2?"rich":S.lean>.4?"lean":"ok"}
+      const n=1+Math.round(S.smoke*4);
+      for(let j=0;j<n;j++)puffs.push({x:606,y:58,vx:18+Math.random()*25,vy:-8-Math.random()*14,r:3+Math.random()*3,a:1,dark:S.smoke,pop:mis&&S.lean>.3&&Math.random()<.5});
+    }
+    prevPhi[i]=phi;flash[i]=Math.max(0,flash[i]-dt*(4+hz*2));
+  }
+  for(const u of puffs){u.x+=u.vx*dt;u.y+=u.vy*dt;u.r+=dt*(8+u.dark*10);u.a-=dt*(u.pop?3:0.9)}
+  puffs=puffs.filter(u=>u.a>0);jolt*=Math.pow(.02,dt);
+}
+function frame(dt){
+  step(dt);
+  const sc=cv.width/LW;cx.setTransform(sc,0,0,sc,0,0);cx.clearRect(0,0,LW,LH);
+  const amp=(S.vib/100)*4.5+jolt;
+  const sx=Math.sin(time*47)*amp*.8+Math.sin(time*13)*jolt*.5,sy=Math.cos(time*41)*amp*.5;
+  /* intake manifold, warna = campuran */
+  const rich=cl((14.7-S.afr)/3,-1,1);
+  cx.lineCap="round";cx.lineJoin="round";
+  cx.beginPath();PATH.forEach(([x,y],i)=>i?cx.lineTo(x,y):cx.moveTo(x,y));
+  cx.strokeStyle=C.line;cx.lineWidth=36;cx.stroke();
+  cx.globalAlpha=.18+Math.abs(rich)*.35;cx.strokeStyle=rich>0?C.fuel:C.air;cx.lineWidth=30;cx.stroke();cx.globalAlpha=1;
+  /* karburator */
+  cx.fillStyle=C.panel;cx.strokeStyle=C.muted;cx.lineWidth=1.5;
+  cx.fillRect(14,118,32,82);cx.strokeRect(14,118,32,82);
+  cx.globalAlpha=.55;cx.fillStyle=C.fuel;cx.fillRect(15,150,30,49);cx.globalAlpha=1;
+  cx.strokeStyle=C.muted;cx.lineWidth=2.5;
+  cx.beginPath();cx.moveTo(70,14);cx.lineTo(70,70);cx.quadraticCurveTo(82,95,70,120);cx.lineTo(70,212);cx.stroke();
+  cx.beginPath();cx.moveTo(110,14);cx.lineTo(110,70);cx.quadraticCurveTo(98,95,110,120);cx.lineTo(110,212);cx.stroke();
+  const idleOn=mode==="idle";
+  cx.lineWidth=3;cx.strokeStyle=idleOn?C.line:C.fuel;
+  cx.beginPath();cx.moveTo(46,196);cx.lineTo(58,196);cx.lineTo(58,95);cx.lineTo(79,95);cx.stroke();
+  cx.strokeStyle=idleOn?C.fuel:C.line;
+  cx.beginPath();cx.moveTo(46,190);cx.lineTo(54,190);cx.lineTo(54,140);cx.lineTo(64,140);cx.lineTo(64,186);cx.lineTo(70,186);cx.stroke();
+  const ang=S.thr*Math.PI/180;cx.strokeStyle=C.ink;cx.lineWidth=4;
+  cx.beginPath();cx.moveTo(90-Math.cos(ang)*19,176+Math.sin(ang)*19);cx.lineTo(90+Math.cos(ang)*19,176-Math.sin(ang)*19);cx.stroke();
+  cx.fillStyle=C.ink;cx.beginPath();cx.arc(90,176,2.5,0,7);cx.fill();
+  /* partikel */
+  for(const q of parts){const [x,y]=at(q.d,q.o);cx.fillStyle=q.f?C.fuel:C.air;cx.globalAlpha=q.f?.95:.55;cx.beginPath();cx.arc(x,y,q.f?2.3:1.6,0,7);cx.fill()}
+  cx.globalAlpha=1;
+  /* mesin (ikut bergetar) */
+  cx.save();cx.translate(sx,sy);
+  cx.fillStyle=C.panel;cx.strokeStyle=C.muted;cx.lineWidth=1.5;
+  cx.fillRect(222,44,250,26);cx.strokeRect(222,44,250,26);
+  cx.fillRect(222,190,250,72);cx.strokeRect(222,190,250,72);
+  cx.strokeStyle=C.line;cx.lineWidth=2;cx.beginPath();cx.moveTo(472,57);cx.lineTo(604,57);cx.stroke();
+  cx.strokeStyle=C.muted;cx.lineWidth=12;cx.globalAlpha=.35;cx.beginPath();cx.moveTo(472,57);cx.lineTo(604,57);cx.stroke();cx.globalAlpha=1;
+  const crY=228,r=15,L=117,run=T.rpm>0;
+  for(let i=0;i<4;i++){
+    const X=CYX[i],a=theta+COFF[i];
+    cx.fillStyle=C.sunk;cx.strokeStyle=C.muted;cx.lineWidth=1.5;cx.fillRect(X-22,70,44,120);cx.strokeRect(X-22,70,44,120);
+    const px=X+r*Math.sin(a),py=crY-r*Math.cos(a),pin=py-Math.sqrt(L*L-Math.pow(r*Math.sin(a),2)),top=pin-20;
+    const f=flash[i];
+    if(f>0){const col=fType[i]==="knock"?C.bad:fType[i]==="rich"?"#ff9a2e":fType[i]==="lean"?"#c9d8ff":"#6fa8ff";
+      cx.globalAlpha=f*(fType[i]==="lean"?.45:.85);cx.fillStyle=col;cx.fillRect(X-21,71,42,Math.max(2,top-71));
+      if(fType[i]==="knock"){cx.strokeStyle=C.bad;cx.lineWidth=2;cx.beginPath();cx.moveTo(X-16,76);cx.lineTo(X-6,top-4);cx.lineTo(X+2,78);cx.lineTo(X+12,top-6);cx.stroke()}
+      cx.globalAlpha=1}
+    cx.fillStyle=C.muted;cx.fillRect(X-20,top,40,24);
+    cx.strokeStyle=C.ink;cx.lineWidth=3;cx.beginPath();cx.moveTo(X,pin);cx.lineTo(px,py);cx.stroke();cx.lineWidth=2;cx.beginPath();cx.moveTo(X,crY);cx.lineTo(px,py);cx.stroke();cx.fillStyle=C.ink;cx.beginPath();cx.arc(px,py,3.5,0,7);cx.fill();cx.beginPath();cx.arc(X,crY,2.5,0,7);cx.fill();
+    cx.fillStyle=f>.5?"#ffd66b":C.ink;cx.fillRect(X-3,36,6,10);
+    if(AE&&AE.tight>.005&&mode==="idle"&&run){cx.globalAlpha=.25+.25*Math.sin(time*6+i);cx.fillStyle=C.bad;cx.beginPath();cx.arc(X+14,72,3,0,7);cx.fill();cx.globalAlpha=1}
+  }
+  cx.strokeStyle=C.muted;cx.lineWidth=2;cx.beginPath();cx.moveTo(240,crY);cx.lineTo(462,crY);cx.stroke();
+  cx.restore();
+  /* asap knalpot */
+  for(const u of puffs){
+    if(u.pop){cx.globalAlpha=u.a;cx.fillStyle="#ff8a1e";cx.beginPath();cx.arc(u.x,u.y,u.r*.8,0,7);cx.fill();continue}
+    const g=Math.round(200-u.dark*170);cx.globalAlpha=u.a*(.12+u.dark*.6);cx.fillStyle=`rgb(${g},${g},${g})`;cx.beginPath();cx.arc(u.x,u.y,u.r,0,7);cx.fill()}
+  cx.globalAlpha=1;
+  if(!run){cx.fillStyle=C.bad;cx.font="600 18px "+getComputedStyle(document.body).fontFamily;cx.textAlign="center";cx.fillText("Mesin mati",347,130)}
+  if(tick++%4===0){$("aRpm").textContent=run?Math.round(S.rpm/10)*10:"0";$("aAfr").textContent=S.afr>=25?"–":fmt(S.afr,1)}
+}
+let tick=0,last=0,visible=true,raf=0;
+function loop(t){const dt=Math.min(.05,(t-(last||t))/1000);last=t;frame(dt);raf=visible&&!document.hidden?requestAnimationFrame(loop):0}
+function startLoop(){if(reduce||raf)return;last=0;raf=requestAnimationFrame(loop)}
+new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible)startLoop()}).observe(cv);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)startLoop()});
 ids.forEach(k=>$(k).addEventListener("input",render));
 ["leak","mount"].forEach(k=>$(k).addEventListener("change",render));
 render();
+if(reduce){for(const k in T)S[k]=T[k];frame(0)}else startLoop();
 </script>
 <footer style="max-width:1120px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 32px;display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px"><a href="qr.png" download style="color:var(--air)">Unduh QR</a><a href="../kijang-5k-karburator-langsam/" style="color:var(--air)">Rangkuman troubleshooting</a><a href="../" style="color:var(--air)">Semua proyek</a></footer>
 </body>

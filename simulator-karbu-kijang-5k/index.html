@@ -112,7 +112,7 @@ h2{font:600 15px var(--display);letter-spacing:.08em;text-transform:uppercase;co
         <div class="ctl air"><label for="sab">Slow air bleed</label><span class="val" id="sabV"></span>
           <input id="sab" type="range" min="0.6" max="1.2" step="0.05" value="0.8"><span class="hint">Lebih besar = lebih banyak udara (kurus)</span></div>
         <div class="ctl"><label for="scr">Sekrup campuran</label><span class="val" id="scrV"></span>
-          <input id="scr" type="range" min="0" max="4" step="0.125" value="2"><span class="hint">Diputar keluar = lebih kaya</span></div>
+          <input id="scr" type="range" min="0" max="10" step="0.125" value="2"><span class="hint">Diputar keluar = lebih kaya. Efeknya jenuh di atas ±4 putaran.</span></div>
         <div class="ctl air"><label for="rpmSet">Sekrup gas langsam</label><span class="val" id="rpmSetV"></span>
           <input id="rpmSet" type="range" min="550" max="1050" step="25" value="775"><span class="hint">Bukaan throttle saat langsam</span></div>
       </section>
@@ -122,7 +122,7 @@ h2{font:600 15px var(--display);letter-spacing:.08em;text-transform:uppercase;co
         <div class="ctl"><label for="mj">Main jet primer</label><span class="val" id="mjV"></span>
           <input id="mj" type="range" min="110" max="160" step="2.5" value="130"><span class="hint">Penentu utama AFR di putaran menengah dan tinggi</span></div>
         <div class="ctl air"><label for="mab">Main air bleed</label><span class="val" id="mabV"></span>
-          <input id="mab" type="range" min="0.5" max="0.9" step="0.05" value="0.7"><span class="hint">Lebih besar = makin kurus saat RPM naik</span></div>
+          <input id="mab" type="range" min="0.5" max="1.2" step="0.05" value="0.7"><span class="hint">Lebih besar = makin kurus saat RPM naik. Di atas ±0,90 mm beban penuh cepat kurus.</span></div>
       </section>
 
       <section class="panel" aria-labelledby="h-mesin">
@@ -196,7 +196,7 @@ function engine(p){
   const cruise=14.7*Math.pow(1.30/(p.mj/100),2)*Math.pow(p.mab/0.70,0.35);
   const full=12.9*Math.pow(1.30/(p.mj/100),2)*Math.pow(p.mab/0.70,0.8);
   const rpm=rpmAt(p.scr);
-  let sPeak=0,rPeak=0;for(let s=0;s<=4.0001;s+=0.0625){const r=rpmAt(s);if(r>rPeak){rPeak=r;sPeak=s}}
+  let sPeak=0,rPeak=0;for(let s=0;s<=10.0001;s+=0.0625){const r=rpmAt(s);if(r>rPeak){rPeak=r;sPeak=s}}
   let v=0;
   if(idle>14.8) v+=Math.min(45,(idle-14.8)*18);
   if(idle<13.5) v+=Math.min(35,(13.5-idle)*14);
@@ -224,14 +224,14 @@ function afrBar(key,label,sub,val){
 
 function drawCurve(p,e){
   const W=640,H=250,L=48,R=16,T=14,B=40;
-  const sx=s=>L+s/4*(W-L-R);
+  const sx=s=>L+s/10*(W-L-R);
   const maxR=Math.max(1100,Math.ceil(e.rPeak/100)*100+100);
   const sy=r=>T+(1-r/maxR)*(H-T-B);
   let path="",started=false;
-  for(let s=0;s<=4.0001;s+=0.0625){const r=e.rpmAt(s);if(r<=0){started=false;continue}path+=(started?"L":"M")+sx(s).toFixed(1)+" "+sy(r).toFixed(1)+" ";started=true}
+  for(let s=0;s<=10.0001;s+=0.0625){const r=e.rpmAt(s);if(r<=0){started=false;continue}path+=(started?"L":"M")+sx(s).toFixed(1)+" "+sy(r).toFixed(1)+" ";started=true}
   let grid="";
   for(let r=0;r<=maxR;r+=200){grid+=`<line x1="${L}" x2="${W-R}" y1="${sy(r)}" y2="${sy(r)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${sy(r)+4}" text-anchor="end">${r}</text>`}
-  for(let s=0;s<=4;s++){grid+=`<text x="${sx(s)}" y="${H-B+18}" text-anchor="middle">${s}</text>`}
+  for(let s=0;s<=10;s++){grid+=`<text x="${sx(s)}" y="${H-B+18}" text-anchor="middle">${s}</text>`}
   grid+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">putaran keluar dari tertutup</text>`;
   const band=`<rect x="${sx(1.5)}" y="${T}" width="${sx(3)-sx(1.5)}" height="${H-T-B}" fill="var(--ok-soft)" opacity=".6"/>`;
   const peak=e.rPeak>0?`<line x1="${sx(e.sPeak)}" x2="${sx(e.sPeak)}" y1="${T}" y2="${H-B}" stroke="var(--ok)" stroke-width="1.5" stroke-dasharray="4 4"/>`:"";
@@ -289,7 +289,8 @@ function render(){
   if(p.leak) add("bad","Kebocoran vakum","Udara palsu masuk dan membuat langsam kurus serta tidak stabil. Cari kebocoran dengan carb cleaner di gasket intake dan selang vakum.");
   if(p.mount) add("warn","Engine mounting lemah","Getaran mesin diteruskan ke bodi. Mesin bisa halus, tapi kabin tetap bergetar. Ganti karet mounting.");
   if(rpm){
-    if(p.scr>3.5) add("warn","Sekrup campuran lebih dari 3,5 putaran","Jalur langsam kurus. Perkecil slow air bleed (−0,1 mm) atau naikkan pilot jet ke #52,5–#55.");
+    if(p.scr>5) add("bad","Sekrup campuran lebih dari 5 putaran","Di atas sekitar 4 putaran sekrup hampir tidak menambah bensin lagi, dan sekrup bisa lepas atau bergetar keluar. Artinya jalur langsam terlalu kurus: perkecil slow air bleed atau naikkan pilot jet, lalu kembalikan sekrup ke 1,5–3 putaran.");
+    else if(p.scr>3.5) add("warn","Sekrup campuran lebih dari 3,5 putaran","Jalur langsam kurus. Perkecil slow air bleed (−0,1 mm) atau naikkan pilot jet ke #52,5–#55.");
     else if(p.scr<1.5) add("warn","Sekrup campuran kurang dari 1,5 putaran","Jalur langsam kaya. Perbesar slow air bleed ke 0,90 mm atau turunkan pilot jet ke #45.");
     else add("ok","Posisi sekrup campuran wajar (1,5–3 putaran)","Kombinasi pilot jet dan slow air bleed cocok.");
     if(Math.abs(p.scr-e.sPeak)>0.4) add("warn","Sekrup belum di titik paling halus",`Titik RPM tertinggi ada di sekitar ${fmt(e.sPeak,2)} putaran. Tekan "Jalankan prosedur setel langsam" untuk melihat caranya.`);
@@ -318,7 +319,7 @@ $("pAwal").onclick=()=>setVals({pj:50,sab:0.8,scr:2,rpmSet:775,mj:130,mab:0.7,vi
 $("pKlep").onclick=()=>setVals({vin:0.20,vex:0.30});
 $("pAuto").onclick=()=>{
   const p=read(),e=engine(p);
-  const s1=Math.min(4,Math.max(0,e.sPeak));
+  const s1=Math.min(10,Math.max(0,e.sPeak));
   animateTo({scr:s1},700,()=>{
     const s2=Math.max(0,s1-0.125);
     animateTo({scr:s2},400,()=>{

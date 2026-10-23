@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi Wire Harness Assembly Process · PT. Harmonics Techindo Agung</title>
+<meta name="description" content="Video edukasi proses perakitan multi wire harness PT. Harmonics Techindo Agung: insersi terminal, routing di assembly board, net tube, uji kontinuitas, dan pengecekan housing.">
+<meta property="og:title" content="Multi Wire Harness Assembly Process">
+<meta property="og:description" content="Video edukasi proses perakitan multi wire harness · PT. Harmonics Techindo Agung">
+<meta property="og:url" content="https://sembre.github.io/project/multi-wire-harness-assembly-hta/">
+<meta property="og:image" content="https://sembre.github.io/project/multi-wire-harness-assembly-hta/poster.jpg">
+<meta property="og:type" content="video.other">
+<meta property="og:video" content="https://sembre.github.io/project/multi-wire-harness-assembly-hta/MULTI_WIRE_HARNESS_PROCESS_HTA.mp4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --red:#FA2D0F; --navy:#0B1220; --panel:#131C2E; --text:#E8ECF3; --muted:#9AA6B8; --line:rgba(255,255,255,.1); }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--navy); color:var(--text); font-family:Inter,system-ui,sans-serif; line-height:1.55; }
+  main { max-width:1080px; margin:0 auto; padding:32px 16px 48px; }
+  header { display:flex; align-items:center; gap:16px; margin-bottom:22px; }
+  header img { height:56px; }
+  .co { font-size:13px; letter-spacing:3px; color:var(--muted); text-transform:uppercase; }
+  h1 { font-family:Poppins,sans-serif; font-weight:800; font-size:clamp(26px,4.4vw,42px); line-height:1.1; margin:4px 0 0; }
+  h1 span { color:var(--red); }
+  .player { border-radius:14px; overflow:hidden; background:#000; border:1px solid var(--line); box-shadow:0 20px 50px rgba(0,0,0,.4); }
+  video { display:block; width:100%; height:auto; aspect-ratio:16/9; background:#000; }
+  .actions { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 28px; }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:11px 18px; border-radius:10px; text-decoration:none; font-weight:600; font-size:15px; }
+  .btn.primary { background:var(--red); color:#fff; }
+  .btn.ghost { border:1px solid var(--line); color:var(--text); }
+  .btn:hover { filter:brightness(1.1); }
+  h2 { font-family:Poppins,sans-serif; font-size:20px; margin:0 0 12px; }
+  ol.steps { list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+  ol.steps li { display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 16px; }
+  .num { font-family:Poppins,sans-serif; font-weight:800; color:#fff; background:var(--red); border-radius:8px; width:42px; height:42px; display:grid; place-items:center; }
+  .t { font-weight:600; }
+  .en { color:var(--muted); font-size:14px; font-style:italic; }
+  .ts { font-variant-numeric:tabular-nums; color:var(--muted); font-size:14px; background:none; border:1px solid var(--line); border-radius:8px; padding:6px 10px; cursor:pointer; color:var(--text); }
+  .ts:hover { border-color:var(--red); }
+  .two { display:grid; grid-template-columns:1fr 220px; gap:28px; align-items:start; }
+  .qr { background:#fff; border-radius:12px; padding:12px; text-align:center; color:#1B2430; font-size:13px; }
+  .qr img { width:100%; height:auto; display:block; }
+  footer { margin-top:36px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; display:flex; gap:16px; flex-wrap:wrap; }
+  footer a { color:var(--muted); }
+  @media (max-width:720px){ .two{grid-template-columns:1fr} .qr{max-width:220px} ol.steps li{grid-template-columns:auto 1fr} .ts{grid-column:2; justify-self:start} }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="logo-hta.png" alt="Logo PT. Harmonics Techindo Agung">
+    <div>
+      <div class="co">PT. Harmonics Techindo Agung · Video Edukasi</div>
+      <h1>Multi Wire Harness <span>Assembly Process</span></h1>
+    </div>
+  </header>
+
+  <div class="player">
+    <video id="v" controls playsinline preload="metadata" poster="poster.jpg">
+      <source src="MULTI_WIRE_HARNESS_PROCESS_HTA.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="actions">
+    <a class="btn primary" href="MULTI_WIRE_HARNESS_PROCESS_HTA.mp4" download>⬇ Unduh MP4 (1080p)</a>
+    <a class="btn ghost" href="MULTI_WIRE_HARNESS_PROCESS_HTA.mp4" target="_blank" rel="noopener">Buka file MP4</a>
+  </div>
+
+  <div class="two">
+    <section>
+      <h2>Tahapan proses</h2>
+      <ol class="steps">
+        <li><div class="num">01</div><div><div class="t">Insersi Terminal ke Housing</div><div class="en">Terminal Insertion into Connector Housing</div></div><button class="ts" data-t="5">0:05</button></li>
+        <li><div class="num">02</div><div><div class="t">Routing Kabel di Assembly Board</div><div class="en">Wire Routing on Assembly Board</div></div><button class="ts" data-t="17.6">0:17</button></li>
+        <li><div class="num">03</div><div><div class="t">Pemasangan Net Tube &amp; Pengikatan</div><div class="en">Net Tube Installation &amp; Bundling</div></div><button class="ts" data-t="30.2">0:30</button></li>
+        <li><div class="num">04</div><div><div class="t">Uji Kontinuitas &amp; Marking OK</div><div class="en">Continuity Test &amp; OK Marking</div></div><button class="ts" data-t="41.5">0:41</button></li>
+        <li><div class="num">05</div><div><div class="t">Persiapan &amp; Pengecekan Housing</div><div class="en">Connector Housing Preparation &amp; Check</div></div><button class="ts" data-t="52.7">0:52</button></li>
+      </ol>
+    </section>
+    <aside class="qr">
+      <img src="qr.png" alt="QR code halaman ini">
+      <div>Pindai untuk membuka video</div>
+    </aside>
+  </div>
+
+  <footer>
+    <a href="qr.png" download>Unduh QR code</a>
+    <a href="../">← Semua proyek</a>
+  </footer>
+</main>
+<script>
+  const v = document.getElementById('v');
+  document.querySelectorAll('.ts').forEach(b => b.addEventListener('click', () => {
+    v.currentTime = parseFloat(b.dataset.t); v.play(); v.scrollIntoView({behavior:'smooth', block:'center'});
+  }));
+</script>
+</body>
+</html>

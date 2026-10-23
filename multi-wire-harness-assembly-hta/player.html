@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HTA Signage Player</title>
+<style>
+  html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden}
+  video{position:fixed;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+  #s{position:fixed;left:8px;bottom:6px;color:#0f0;font:14px monospace;z-index:9}
+</style>
+</head>
+<body>
+<video id="v"
+  src="MULTI_WIRE_HARNESS_PROCESS_HTA.mp4"
+  poster="poster.jpg"
+  autoplay muted loop playsinline preload="auto"></video>
+<div id="s">memuat...</div>
+<script>
+  var v = document.getElementById('v'), s = document.getElementById('s');
+  // ?debug=0 menyembunyikan teks status
+  if (/[?&]debug=0/.test(location.search)) s.style.display = 'none';
+  function play(){ var p = v.play(); if (p && p.catch) p.catch(function(e){ s.textContent = 'BLOKIR: ' + e.name; }); }
+  v.addEventListener('canplay', play);
+  v.addEventListener('playing', function(){ s.textContent = ''; });
+  v.addEventListener('error', function(){ s.textContent = 'ERROR video: ' + (v.error && v.error.code); });
+  v.addEventListener('stalled', function(){ v.load(); play(); });
+  setInterval(function(){ if (v.paused) play(); }, 3000);
+  play();
+</script>
+</body>
+</html>
